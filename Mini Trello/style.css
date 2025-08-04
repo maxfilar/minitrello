@@ -1,3 +1,8 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-size: cover;
 }
@@ -75,4 +80,93 @@ body {
     border-radius: 5px;
     background-color: rgb(59, 59, 59);
     color: white;
+}
+
+#list_block {
+    width: 100vw;
+    height: auto;
+    border: 1px solid black;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#create_new_list {
+    width: 256px;
+    height: 36px;
+}
+
+#new_list_creation {
+    width: 256px;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 4px;
+    background-color: white;
+    border-radius: 5px;
+}
+
+#new_list_name {
+    width: 256px;
+    height: 16px;
+    margin: 4px;
+}
+
+.list_creation_panel {
+    width: 48px;
+    margin: 4px 32px;
+    height: 16px;
+    text-align: center;
+    padding: 0px;
+}
+
+.class_list {
+    width: 256px;
+    border-radius: 5px;
+    height: auto;
+    padding: 6px;
+    background-color: white;
+    text-align: left;
+    color: black;
+    margin-right: 24px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.list_name_class {
+    width: 200px;
+    margin-left: 8px;
+}
+
+.list_edit_class {
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    padding: 0;
+}
+
+.list_edit_panel_class {
+    background-color: white;
+    width: 256px;
+    height: auto;
+    padding: 4px;
+    border: 3px solid black;
+}
+
+.list_type_name_class {
+    font-size: 32px;
+    margin: 4px;
+}
+
+.list_edit_name_class {
+    width: 240px;
+    height: 16px;
+    margin: 16px 4px;
+}
+
+.list_edit_btn {
+    width: 248px;
+    height: 32px;
+    margin: 8px 4px;
+    text-align: center;
 }

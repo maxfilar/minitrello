@@ -7,6 +7,7 @@ $("body").css({
 const BOARD_STATS = {
     name: "", 
     background: undefined,
+    array_lists: [],
 }
 const TRIGGERS = {
     board_create_panel_opened: false,
@@ -21,6 +22,12 @@ const BACKGROUNDS_TEMPLATE_LIST = [
 function BackgroundTemplate(_url) {
     this.img = _url
     this.chosen = false
+}
+
+function List(_name,_id) {
+    this.name = _name
+    this.id = _id
+    this.edit_panel_opened = false
 }
 
 // ===================functions=====================
@@ -99,6 +106,10 @@ function create_new_board() {
         $("#top_panel").append(`<p id="board_name"></p>`)
         $("#top_panel").append(`<button id="change_board_setup">Change</button>`)
 
+        // create button "Create new list"
+        $("body").append(`<div id="list_block"></div>`)
+        $("#list_block").append(`<button id="create_new_list">Create new list</button>`)
+
         // apply setup
         BOARD_STATS.name = get_name
         BOARD_STATS.background = get_background
@@ -113,13 +124,16 @@ function create_setup_change_panel() {
 
         // create the panel
         $("body").append('<div id="board_create_panel"></div>')
+        let btn_change_pos = $("#change_board_setup").offset()
         $("#board_create_panel").css({
-            'margin-left' : 'auto',
-            'z-index' : 2
+            'z-index' : 3,
+            'position' : 'fixed',
+            'right' : '8px',
+            'top' : btn_change_pos.top + 48 + 'px'
         })
 
         // type board name panel
-        $("#board_create_panel").append('<p class="create_panel_text">Type a name of a new board:</p>')
+        $("#board_create_panel").append('<p class="create_panel_text">Type a new name for the board:</p>')
         $("#board_create_panel").append(`<input type="text" id="board_name_type">`)
         
         // background templates
@@ -172,6 +186,119 @@ function board_setup_apply() {
     })
 }
 
+function open_creation_list_panel() {
+    $("#create_new_list").remove()
+    
+    $("#list_block").append(`<div id="new_list_creation"></div>`)
+
+    $("#new_list_creation").append(`<input type="text" id="new_list_name">`)
+    $("#new_list_creation").append(`<button id="list_create_apply" class="list_creation_panel" >Create</button>`)
+    $("#new_list_creation").append(`<button id="list_create_cancel" class="list_creation_panel" >Cancel</button>`)
+}
+
+function close_creation_list_panel() {
+    $("#new_list_creation").remove()
+    $("#create_new_list").remove()
+    $("#list_block").append(`<button id="create_new_list">Create new list</button>`)
+}
+
+function list_elements_create(id) {
+    $("#list_block").append(`<div id="id_list${id}" class="class_list" ></div>`)
+    $(`#id_list${id}`).append(`<p id="list_name_id${id}" class="list_name_class">${BOARD_STATS.array_lists[id].name}</p>`)
+    $(`#id_list${id}`).append(`<button id="list_edit_id${id}" class="list_edit_class">Edit</button>`)
+}
+
+function create_new_list() {
+    let get_name = $("#new_list_name").val()
+    let get_id = BOARD_STATS.array_lists.length
+
+    if (get_name != "") {
+        BOARD_STATS.array_lists.push(new List(get_name,get_id))
+
+        list_elements_create(get_id)
+
+        close_creation_list_panel()
+    }
+}
+
+function get_element_id(sym_start,element) {
+    let get_id = $(element).attr('id')
+    console.log(`element id: ${get_id}`)
+    return get_id.slice(sym_start,get_id.length)
+}
+
+function open_list_edit_panel() {
+    let get_num = get_element_id(12,this)
+
+    if (BOARD_STATS.array_lists[get_num].edit_panel_opened == false) {
+        BOARD_STATS.array_lists[get_num].edit_panel_opened = true
+        console.log(`btn edit list id: ${get_num}`)
+
+        let position = $(this).offset()
+
+        $("body").append(`<div class="list_edit_panel_class" id="list_edit_panel_id${get_num}"></div>`)
+        $(`#list_edit_panel_id${get_num}`).css({
+            'z-index' : 2,
+            'position' : 'fixed',
+            'top': `${position.top+36}px`,
+            'left': `${position.left+16}px`
+        })
+
+        $(`#list_edit_panel_id${get_num}`).append(`<p id="list_editname_text_id${get_num}" class="list_type_name_class">Type new name: </p>`)
+        $(`#list_edit_panel_id${get_num}`).append(`<input type="text" id="list_edit_name_id${get_num}" class="list_edit_name_class">`)
+        $(`#list_edit_panel_id${get_num}`).append(`<button id="list_editname_apply_id${get_num}" class="list_edit_btn">Apply</button>`)
+        $(`#list_edit_panel_id${get_num}`).append(`<button id="list_delete_id${get_num}" class="list_edit_btn">Delete list</button>`)
+    } else {
+        close_list_edit_panel(get_num)
+    }
+}
+
+function close_list_edit_panel(id) {
+    BOARD_STATS.array_lists[id].edit_panel_opened = false
+
+    $(`#list_edit_panel_id${id}`).remove()
+}
+
+function list_edit_apply(element) {
+    let cur_id = get_element_id(22,element)
+
+    let get_name = $(`#list_edit_name_id${cur_id}`).val()
+
+    if (get_name != "") {
+        BOARD_STATS.array_lists[cur_id].name = get_name
+        $(`#list_name_id${cur_id}`).text(`${BOARD_STATS.array_lists[cur_id].name}`)
+    }
+
+    close_list_edit_panel(cur_id)
+}
+
+function delete_list(element) {
+    let get_id = get_element_id(14,element)
+
+    close_list_edit_panel(get_id)
+
+    BOARD_STATS.array_lists.splice(get_id,1)
+    $(`#id_list${get_id}`).remove()
+
+    reset_lists_order()
+}
+
+function reset_lists_order() {
+    $(".class_list").remove()
+
+    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
+        BOARD_STATS.array_lists[i].id = i
+    }
+
+    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
+        list_elements_create(i)
+    }
+
+    console.log(JSON.stringify(BOARD_STATS.array_lists))
+
+    close_creation_list_panel()
+}
+
 // ====================events=======================
 $("#create_new_board").click(create_new_board_panel)
 
@@ -182,3 +309,24 @@ $(document).on("click","#create_board",create_new_board)
 $(document).on("click","#change_board_setup",create_setup_change_panel)
 
 $(document).on("click","#change_board",apply_new_changes)
+
+$(document).on("click","#create_new_list",open_creation_list_panel)
+
+$(document).on("click","#list_create_cancel",close_creation_list_panel)
+
+$(document).on("click","#list_create_apply",create_new_list)
+
+$(document).on("click",".list_edit_class",open_list_edit_panel)
+
+$(document).on("click",".list_edit_btn", function() {
+    let get_id = $(this).attr('id')
+    let get_type = get_id.slice(0,14)
+
+    console.log(`finded type: ${get_type}` )
+
+    if (get_type == 'list_delete_id') {
+        delete_list(this)
+    } else {
+        list_edit_apply(this)
+    }
+})

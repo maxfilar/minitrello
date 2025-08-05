@@ -7,8 +7,12 @@ $("body").css({
 const BOARD_STATS = {
     name: "", 
     background: undefined,
-    array_lists: [],
+    array_lists: [ ],
+    cur_page: 1,
+    max_lists_page: 4,
 }
+let page = []
+BOARD_STATS.array_lists.push(page)
 const TRIGGERS = {
     board_create_panel_opened: false,
 }
@@ -28,6 +32,7 @@ function List(_name,_id) {
     this.name = _name
     this.id = _id
     this.edit_panel_opened = false
+    this.page = BOARD_STATS.array_lists.length
 }
 
 // ===================functions=====================
@@ -199,26 +204,37 @@ function open_creation_list_panel() {
 function close_creation_list_panel() {
     $("#new_list_creation").remove()
     $("#create_new_list").remove()
-    $("#list_block").append(`<button id="create_new_list">Create new list</button>`)
+    if (BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length < BOARD_STATS.max_lists_page) {
+        $("#list_block").append(`<button id="create_new_list">Create new list</button>`)
+    }
 }
 
 function list_elements_create(id) {
     $("#list_block").append(`<div id="id_list${id}" class="class_list" ></div>`)
-    $(`#id_list${id}`).append(`<p id="list_name_id${id}" class="list_name_class">${BOARD_STATS.array_lists[id].name}</p>`)
+    $(`#id_list${id}`).append(`<p id="list_name_id${id}" class="list_name_class">${BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][id].name}</p>`)
     $(`#id_list${id}`).append(`<button id="list_edit_id${id}" class="list_edit_class">Edit</button>`)
 }
 
 function create_new_list() {
-    let get_name = $("#new_list_name").val()
-    let get_id = BOARD_STATS.array_lists.length
+    let new_page = []
+    if (BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length >= BOARD_STATS.max_lists_page) {
+        BOARD_STATS.array_lists.push(new_page)
+    }
 
+    let get_name = $("#new_list_name").val()
+    let get_id = BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length
+
+    
+    //console.log(`lists before new creating:${JSON.stringify(BOARD_STATS.array_lists,null,2)}`)
     if (get_name != "") {
-        BOARD_STATS.array_lists.push(new List(get_name,get_id))
+        BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].push(new List(get_name,get_id))
+        console.log(`lists after creating:${JSON.stringify(BOARD_STATS.array_lists,null,2)}`)
 
         list_elements_create(get_id)
 
         close_creation_list_panel()
     }
+
 }
 
 function get_element_id(sym_start,element) {
@@ -230,8 +246,8 @@ function get_element_id(sym_start,element) {
 function open_list_edit_panel() {
     let get_num = get_element_id(12,this)
 
-    if (BOARD_STATS.array_lists[get_num].edit_panel_opened == false) {
-        BOARD_STATS.array_lists[get_num].edit_panel_opened = true
+    if (BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][get_num].edit_panel_opened == false) {
+        BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][get_num].edit_panel_opened = true
         console.log(`btn edit list id: ${get_num}`)
 
         let position = $(this).offset()
@@ -254,7 +270,7 @@ function open_list_edit_panel() {
 }
 
 function close_list_edit_panel(id) {
-    BOARD_STATS.array_lists[id].edit_panel_opened = false
+    BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][id].edit_panel_opened = false
 
     $(`#list_edit_panel_id${id}`).remove()
 }
@@ -265,8 +281,8 @@ function list_edit_apply(element) {
     let get_name = $(`#list_edit_name_id${cur_id}`).val()
 
     if (get_name != "") {
-        BOARD_STATS.array_lists[cur_id].name = get_name
-        $(`#list_name_id${cur_id}`).text(`${BOARD_STATS.array_lists[cur_id].name}`)
+        BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][cur_id].name = get_name
+        $(`#list_name_id${cur_id}`).text(`${BOARD_STATS.array_lists[BOARD_STATS.cur_page-1][cur_id].name}`)
     }
 
     close_list_edit_panel(cur_id)
@@ -277,7 +293,7 @@ function delete_list(element) {
 
     close_list_edit_panel(get_id)
 
-    BOARD_STATS.array_lists.splice(get_id,1)
+    BOARD_STATS.array_lists[BOARD_STATS.cur_page-1].splice(get_id,1)
     $(`#id_list${get_id}`).remove()
 
     reset_lists_order()
@@ -286,11 +302,12 @@ function delete_list(element) {
 function reset_lists_order() {
     $(".class_list").remove()
 
-    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
-        BOARD_STATS.array_lists[i].id = i
+    let array = BOARD_STATS.array_lists
+    for (var i = 0; i < array[BOARD_STATS.cur_page-1].length; i++) {
+        array[BOARD_STATS.cur_page-1][i].id = i
     }
 
-    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
+    for (var i = 0; i < array[BOARD_STATS.cur_page-1].length; i++) {
         list_elements_create(i)
     }
 

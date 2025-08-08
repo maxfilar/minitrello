@@ -109,6 +109,9 @@ function create_new_board() {
         // create top panel
         $("body").append(`<div id="top_panel"></div>`)
         $("#top_panel").append(`<p id="board_name"></p>`)
+        $("#top_panel").append(`<button id="prev_page">Back</button>`)
+        $("#top_panel").append(`<p id="page_current">Page: ${BOARD_STATS.cur_page}</p>`)
+        $("#top_panel").append(`<button id="next_page">Next</button>`)
         $("#top_panel").append(`<button id="change_board_setup">Change</button>`)
 
         // create button "Create new list"
@@ -204,7 +207,7 @@ function open_creation_list_panel() {
 function close_creation_list_panel() {
     $("#new_list_creation").remove()
     $("#create_new_list").remove()
-    if (BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length < BOARD_STATS.max_lists_page) {
+    if (BOARD_STATS.array_lists[BOARD_STATS.cur_page-1].length < BOARD_STATS.max_lists_page) {
         $("#list_block").append(`<button id="create_new_list">Create new list</button>`)
     }
 }
@@ -216,19 +219,21 @@ function list_elements_create(id) {
 }
 
 function create_new_list() {
-    let new_page = []
-    if (BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length >= BOARD_STATS.max_lists_page) {
-        BOARD_STATS.array_lists.push(new_page)
-    }
-
     let get_name = $("#new_list_name").val()
     let get_id = BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length
 
     
     //console.log(`lists before new creating:${JSON.stringify(BOARD_STATS.array_lists,null,2)}`)
     if (get_name != "") {
-        BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].push(new List(get_name,get_id))
+        BOARD_STATS.array_lists[BOARD_STATS.cur_page-1].push(new List(get_name,get_id))
+        
+        let new_page = []
+        if (BOARD_STATS.array_lists[BOARD_STATS.array_lists.length-1].length >= BOARD_STATS.max_lists_page) {
+            BOARD_STATS.array_lists.push(new_page)
+        }
+
         console.log(`lists after creating:${JSON.stringify(BOARD_STATS.array_lists,null,2)}`)
+        console.log(`count of pages:${BOARD_STATS.array_lists.length}`)
 
         list_elements_create(get_id)
 
@@ -296,7 +301,16 @@ function delete_list(element) {
     BOARD_STATS.array_lists[BOARD_STATS.cur_page-1].splice(get_id,1)
     $(`#id_list${get_id}`).remove()
 
-    reset_lists_order()
+    if (BOARD_STATS.cur_page > 1 &&
+        BOARD_STATS.array_lists[BOARD_STATS.cur_page-1].length < 1 &&
+        BOARD_STATS.array_lists[BOARD_STATS.cur_page-2].length < BOARD_STATS.max_lists_page
+        ) {
+            jump_prev_page()
+        } else {
+            reset_lists_order()
+        }
+    reorder_lists_inpages()
+    delete_empty_page()
 }
 
 function reset_lists_order() {
@@ -314,6 +328,48 @@ function reset_lists_order() {
     console.log(JSON.stringify(BOARD_STATS.array_lists))
 
     close_creation_list_panel()
+}
+
+function jump_next_page() {
+    if (BOARD_STATS.cur_page < BOARD_STATS.array_lists.length) {
+        BOARD_STATS.cur_page ++
+        $("#page_current").text(`Page: ${BOARD_STATS.cur_page}`)
+        reset_lists_order()
+    }
+}
+
+function jump_prev_page() {
+    if (BOARD_STATS.cur_page > 1) {
+        BOARD_STATS.cur_page --
+        $("#page_current").text(`Page: ${BOARD_STATS.cur_page}`)
+        reset_lists_order()
+    }
+}
+
+function delete_empty_page() {
+    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
+        if (i+1 < BOARD_STATS.array_lists.length &&
+             BOARD_STATS.array_lists[i].length < BOARD_STATS.max_lists_page &&
+             BOARD_STATS.array_lists[i+1].length < 1) {
+                BOARD_STATS.array_lists.splice(i+1,1)
+             }
+    }
+}
+
+function reorder_lists_inpages() {
+    for (var i = 0; i < BOARD_STATS.array_lists.length; i++) {
+        if (i+1 < BOARD_STATS.array_lists.length &&
+            BOARD_STATS.array_lists[i].length < BOARD_STATS.max_lists_page &&
+            BOARD_STATS.array_lists[i+1].length > 0) {
+                let list_from_page = BOARD_STATS.array_lists[i+1][0]
+
+                BOARD_STATS.array_lists[i+1].splice(0,1)
+
+                BOARD_STATS.array_lists[i].push(list_from_page)
+            }
+    }
+    delete_empty_page()
+    reset_lists_order()
 }
 
 // ====================events=======================
@@ -347,3 +403,7 @@ $(document).on("click",".list_edit_btn", function() {
         list_edit_apply(this)
     }
 })
+
+$(document).on("click","#next_page",jump_next_page)
+
+$(document).on("click","#prev_page",jump_prev_page)

@@ -1,4 +1,4 @@
-*{
+* {
     margin: 0;
     padding: 0;
 }
@@ -196,3 +196,24 @@ body {
     text-align: center;
 }
 
+.add_card_class {
+    width: 255px;
+    height: 30px;
+    margin: 0 auto;
+}
+
+.new_card_name_class {
+    width: 250px;
+    height: 15px;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+.class_card {
+    width: 250px;
+    height: 60px;
+    background-color: lightgreen;
+    border-radius: 5px;
+    margin: 0 auto;
+    margin-top: 10px;
+}
